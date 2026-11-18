@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f0e8" />
+    <title>VibeFinder — Find your sound</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="VibeFinder home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>VibeFinder</span>
+      </a>
+      <div class="topbar-note">FMA catalog <span class="dot"></span> Gemini guided</div>
+    </header>
+
+    <main>
+      <section class="hero shell">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> Personal listening desk</p>
+          <h1>Find the sound<br /><em>for this moment.</em></h1>
+          <p class="hero-description">
+            Describe the feeling, the place, or the pace. VibeFinder turns it into a focused listening set.
+          </p>
+        </div>
+
+        <form class="prompt-panel" id="recommend-form">
+          <div class="prompt-panel-top">
+            <span class="panel-label">Your listening brief</span>
+            <span class="panel-count" id="prompt-count">0 / 240</span>
+          </div>
+          <label class="sr-only" for="query">Describe what you want to listen to</label>
+          <textarea id="query" name="query" maxlength="240" rows="4" placeholder="e.g. warm acoustic folk for a slow Sunday morning..." required></textarea>
+          <div class="prompt-footer">
+            <div class="suggestions" aria-label="Suggested prompts">
+              <button type="button" class="suggestion" data-query="calm acoustic folk music for studying">Calm study</button>
+              <button type="button" class="suggestion" data-query="energetic electronic music for working out">Workout energy</button>
+              <button type="button" class="suggestion" data-query="sad piano music for a rainy evening">Rainy evening</button>
+            </div>
+            <button class="primary-button" type="submit">
+              <span>Find my sound</span>
+              <span class="button-arrow" aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="interpretation shell is-hidden" id="interpretation" aria-live="polite">
+        <div>
+          <p class="section-kicker">Gemini interpretation</p>
+          <p class="interpretation-query" id="retrieval-query"></p>
+        </div>
+        <div class="chip-list" id="preference-chips"></div>
+      </section>
+
+      <section class="results-section shell" id="results-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">The listening set</p>
+            <h2 id="results-title">Waiting for your brief</h2>
+          </div>
+          <span class="result-count" id="result-count">0 tracks</span>
+        </div>
+
+        <div class="status-card" id="status-card">
+          <span class="status-orb" aria-hidden="true"></span>
+          <div>
+            <strong>Tell us what the room should feel like.</strong>
+            <p>Your recommendations will appear here.</p>
+          </div>
+        </div>
+
+        <div class="results-list is-hidden" id="results-list"></div>
+      </section>
+    </main>
+
+    <aside class="player-dock" aria-label="Audio player">
+      <div class="player-track">
+        <div class="player-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="player-copy">
+          <span class="player-label">Now selected</span>
+          <strong id="player-title">Choose a track above</strong>
+          <span id="player-artist">Audio preview will appear here</span>
+        </div>
+      </div>
+      <div class="player-center">
+        <div class="waveform" id="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="player-status" id="player-status">No preview URL in the current catalog</span>
+      </div>
+      <div class="player-actions">
+        <button class="icon-button" id="play-button" type="button" disabled aria-label="Play selected track">▶</button>
+        <audio id="audio-element" preload="metadata"></audio>
+      </div>
+    </aside>
+
+    <div class="toast" id="toast" role="alert"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -7,9 +7,11 @@ __pycache__/
 .venv/
 env/
 venv/
-
+.env
+data/fma_metadata/
 # OS files
 .DS_Store
 
 # Pytest cache
 .pytest_cache/
+.pytest_tmp/

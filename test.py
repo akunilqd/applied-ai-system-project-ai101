@@ -1,0 +1,1 @@
+from src.recommender import load_songs; from src.query_parser import recommend_from_query; songs=load_songs('data/songs_fma.csv'); parsed, results=recommend_from_query('sad piano music', songs); print('parsed=', parsed); [print(round(score,3), song['title'], '/', song['genre'], '|', reason) for song,score,reason in results]

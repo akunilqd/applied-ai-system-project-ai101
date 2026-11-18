@@ -1,0 +1,37 @@
+{
+  "passed": 3,
+  "total": 3,
+  "catalog": "F:\\PROJECT 2026\\CODEPATH - Final Project\\applied-ai-system-final\\data\\songs_fma.csv",
+  "cases": [
+    {
+      "case": "calm folk study",
+      "passed": true,
+      "genre_hits": 5,
+      "top_titles": [
+        "Dust Devils",
+        "Green Water",
+        "Two People Shorten a Road"
+      ]
+    },
+    {
+      "case": "energetic electronic workout",
+      "passed": true,
+      "genre_hits": 5,
+      "top_titles": [
+        "Cracker Noise",
+        "03 (hometown).mp3",
+        "02 opendoor.mp3"
+      ]
+    },
+    {
+      "case": "sad folk evening",
+      "passed": true,
+      "genre_hits": 5,
+      "top_titles": [
+        "Make It Last",
+        "Smoke",
+        "Kokopelli"
+      ]
+    }
+  ]
+}

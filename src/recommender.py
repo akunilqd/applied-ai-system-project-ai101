@@ -27,6 +27,9 @@ class Song:
     duration_seconds: int = 210
     language: str = "english"
     explicit: bool = False
+    tags: str = ""
+    source: str = ""
+    license: str = ""
 
 
 @dataclass(frozen=True)
@@ -74,6 +77,84 @@ STRATEGIES = {
     "mood-first": RankingStrategy(0.5, 3.0, 1.0),
     "energy-first": RankingStrategy(1.0, 1.0, 2.0),
 }
+
+
+LEGACY_SONG_COLUMNS = {
+    "id", "title", "artist", "genre", "mood", "energy", "tempo_bpm",
+    "valence", "danceability", "acousticness", "instrumentalness",
+    "popularity", "release_year", "duration_seconds", "language", "explicit",
+}
+
+FMA_SONG_COLUMNS = {
+    "id", "title", "artist", "genre", "tags", "energy", "tempo_bpm",
+    "valence", "danceability", "acousticness", "duration_seconds",
+    "release_year", "source", "license",
+}
+
+
+def _optional_number(value, *, integer=False):
+    """Convert an optional CSV value without inventing a numeric default."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    try:
+        number = float(value)
+    except (ValueError, TypeError):
+        return None
+    if not math.isfinite(number):
+        return None
+    if integer and not number.is_integer():
+        return None
+    return int(number) if integer else number
+
+
+def _optional_bounded(value, low, high, *, integer=False):
+    """Keep an optional number only when it fits the shared schema range."""
+    number = _optional_number(value, integer=integer)
+    if number is None or not low <= number <= high:
+        return None
+    return number
+
+
+def _derived_mood(energy, valence):
+    """Create a transparent coarse mood label from available FMA features."""
+    if energy is None and valence is None:
+        return "unknown"
+    if energy is not None and energy >= 0.75:
+        return "intense"
+    if valence is not None and valence < 0.4:
+        return "sad"
+    if energy is not None and energy < 0.45:
+        return "calm"
+    if valence is not None and valence >= 0.6:
+        return "happy"
+    return "neutral"
+
+
+def _normalize_fma_song(row):
+    """Map a normalized FMA row into the shared Song schema."""
+    energy = _optional_bounded(row.get("energy"), 0, 1)
+    valence = _optional_bounded(row.get("valence"), 0, 1)
+    return {
+        "id": row.get("id"),
+        "title": row.get("title"),
+        "artist": row.get("artist"),
+        "genre": row.get("genre", "unknown"),
+        "mood": _derived_mood(energy, valence),
+        "energy": energy,
+        "tempo_bpm": _optional_bounded(row.get("tempo_bpm"), 20, 300),
+        "valence": valence,
+        "danceability": _optional_bounded(row.get("danceability"), 0, 1),
+        "acousticness": _optional_bounded(row.get("acousticness"), 0, 1),
+        "instrumentalness": None,
+        "popularity": 50.0,
+        "release_year": _optional_bounded(row.get("release_year"), 1900, 2100, integer=True),
+        "duration_seconds": _optional_bounded(row.get("duration_seconds"), 1, 3600, integer=True),
+        "language": "unknown",
+        "explicit": False,
+        "tags": row.get("tags", ""),
+        "source": row.get("source", "free-music-archive"),
+        "license": row.get("license", "unknown"),
+    }
 
 
 def bounded_number(value, name, low, high, *, integer=False):
@@ -129,6 +210,9 @@ def validate_song(song):
         normalized = normalized_text(result[name], name)
         result[name] = result[name].strip() if name in {"title", "artist"} else normalized
     for name, (low, high, _) in NUMERIC.items():
+        if result[name] is None or (isinstance(result[name], str) and not result[name].strip()):
+            result[name] = None
+            continue
         result[name] = bounded_number(result[name], name, low, high,
                                       integer=name in {"release_year", "duration_seconds"})
     if isinstance(result["explicit"], str):
@@ -157,16 +241,18 @@ def validate_catalog(songs):
 
 
 def load_songs(csv_path: str | Path):
-    """Load a strict CSV schema, converting numeric and boolean attributes."""
+    """Load the legacy or normalized FMA CSV schema."""
     with open(csv_path, newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
-        expected = {field.name for field in fields(Song)}
-        if (not reader.fieldnames or set(reader.fieldnames) != expected
-                or len(reader.fieldnames) != len(expected)):
-            raise ValueError("CSV headers must match the documented Song schema")
+        headers = set(reader.fieldnames or ())
+        if (headers != LEGACY_SONG_COLUMNS and headers != FMA_SONG_COLUMNS) or (
+                len(reader.fieldnames or ()) != len(headers)):
+            raise ValueError("CSV headers must match the legacy or normalized FMA Song schema")
         rows = list(reader)
     if not rows:
         raise ValueError("song catalog is empty")
+    if headers == FMA_SONG_COLUMNS:
+        rows = [_normalize_fma_song(row) for row in rows]
     return validate_catalog(rows)
 
 
@@ -183,13 +269,21 @@ def _score(prefs, song, strategy):
     for name, target in prefs.items():
         weight = strategy.weight(name)
         if name in NUMERIC:
+            if song[name] is None:
+                contributions.append(0.0)
+                reasons.append(f"{name} unavailable (+0.000)")
+                continue
             similarity = max(0.0, 1.0 - abs(song[name] - target) / NUMERIC[name][2])
             points = weight * similarity
             reason = f"{name} {song[name]:g} vs {target:g} (+{points:.3f})"
         else:
-            matches = song[name] == target
-            points = weight if matches else 0.0
-            reason = f"{name} {'match' if matches else 'mismatch'} (+{points:.3f})"
+            if target == "unknown":
+                points = 0.0
+                reason = f"{name} unspecified (+{points:.3f})"
+            else:
+                matches = song[name] == target
+                points = weight if matches else 0.0
+                reason = f"{name} {'match' if matches else 'mismatch'} (+{points:.3f})"
         contributions.append(points)
         reasons.append(reason)
     return math.fsum(contributions), reasons

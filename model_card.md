@@ -65,6 +65,24 @@ These are regression checks, not a held-out human preference study. A passing sc
 - No listening history, skip data, or personalization feedback is used.
 - No audio preview is enabled until verified, licensed `audio_url` data is added.
 
+## Reflection on AI collaboration
+
+AI assistance was used for repository inspection, FMA normalization, retrieval design, test generation, Windows debugging, Gemini prompt design, UI design, and documentation. I accepted the recommendation to keep one shared scorer because it keeps scores and explanations consistent. I revised the suggestion to delete `src.main`: it remains a useful baseline and preserves regression coverage. I rejected describing the deterministic validator as an autonomous agent or fine-tuned model because the implementation does not plan with tools or update model weights.
+
+## Bias and testing reflection
+
+The system can reproduce metadata bias: FMA genre coverage is uneven, English-language examples are overrepresented, and exact labels treat related genres as different. Gemini can also infer subjective numeric targets from wording. The artist penalty improves local variety but does not guarantee demographic or cultural fairness. These limitations are documented rather than hidden.
+
+Testing checks implementation reliability, not musical enjoyment. The current results are:
+
+```text
+pytest: 70 passed
+baseline evaluator: 13/13 passed
+FMA evaluator: 3/3 passed
+```
+
+The tests cover range validation, malformed catalogs, duplicate IDs, score arithmetic, deterministic ordering, blocked FMA records, fabricated explanations, constraints, and three FMA retrieval cases. The evaluation does not replace held-out listener ratings; future work should collect human relevance judgments and measure both ranking quality and exposure diversity.
+
 ## Future improvements
 
 Add verified previews, multi-label genre/mood support, embedding retrieval, listener ratings, learned weights, balanced catalog coverage, and a held-out evaluation set with human relevance judgments.

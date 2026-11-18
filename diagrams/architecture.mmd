@@ -1,0 +1,19 @@
+flowchart LR
+    U[User prompt in browser] --> W[web/server.py]
+    W --> P[src/query_parser.py]
+    P --> G[Gemini structured JSON]
+    G --> V[Validate preferences and retrieval fields]
+    V --> R[src/rag.py<br/>TF-IDF + cosine similarity]
+    F[data/songs_fma.csv] --> L[load_songs + catalog validation]
+    L --> R
+    R --> C[Top candidate tracks]
+    C --> S[src/recommender.py<br/>deterministic score and rank]
+    S --> Q[src/reliability.py<br/>output guardrail]
+    Q --> J[JSON response with score and reasons]
+    J --> W
+    W --> B[web/index.html + app.js]
+
+    M[data/fma_metadata] --> N[scripts/prepare_fma.py]
+    N --> F
+    E[scripts/evaluate_fma.py] --> R
+    E --> S

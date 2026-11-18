@@ -17,7 +17,7 @@ The base project was a small VibeFinder recommender built around 24 fictional so
 
 ## 3. Actual architecture
 
-See [docs/architecture.mmd](docs/architecture.mmd) for the Mermaid source diagram and [docs/project4_evidence.md](docs/project4_evidence.md) for rubric evidence.
+See [diagrams/architecture.mmd](diagrams/architecture.mmd) for the required Mermaid source diagram and [docs/project4_evidence.md](docs/project4_evidence.md) for rubric evidence.
 
 ```text
 browser prompt
@@ -111,7 +111,55 @@ PASS sad folk evening: 5/5 genre hits
 FMA evaluation: 3/3 passed
 ```
 
-## 7. Scoring rules
+## 7. Reproducible end-to-end demo evidence
+
+The following captured interactions use the same web pipeline: Gemini parser -> TF-IDF retrieval -> deterministic scoring. Results can vary slightly when Gemini returns different valid numeric estimates, but every result is still validated before display. Full evidence is in [docs/demo_evidence.md](docs/demo_evidence.md).
+
+### Example 1 — calm acoustic study music
+
+```text
+Input: calm acoustic folk music for studying
+Gemini preferences: genre=folk, mood=calm, energy=0.3, acousticness=0.9
+Retrieval query: calm acoustic folk music for studying and concentration
+
+Top recommendations:
+1. Finale / folk
+2. Heart On Fire / folk
+3. Music of The Ages / folk
+```
+
+### Example 2 — energetic workout music
+
+```text
+Input: energetic electronic music for workout
+Gemini preferences: genre=electronic, mood=intense, energy=0.9
+Keywords: electronic, workout, energetic, upbeat, gym, dance
+
+Top recommendation:
+02 opendoor.mp3 / electronic / score 3.973
+Reason: genre match (+2.000); energy 0.87344 vs 0.9 (+0.973); mood match (+1.000)
+```
+
+### Example 3 — sad relaxing folk music
+
+```text
+Input: sad relaxing folk music
+Gemini preferences: genre=folk, mood=sad, energy=0.3, valence=0.2, acousticness=0.8
+
+Top recommendations:
+1. Make It Last / folk
+2. Forever / folk
+3. Kokopelli / folk
+```
+
+### Web command used for the demonstration
+
+```powershell
+.\.venv\Scripts\python.exe -m web.server
+# Open http://127.0.0.1:8000
+```
+
+## 8. Scoring rules
 
 Gemini does not produce the final recommendation score. It produces target preferences. The existing scorer then applies:
 
@@ -123,17 +171,17 @@ adjusted score: base score - artist_penalty * previous_artist_count
 
 The default `genre-first` weights are genre `2.0`, mood `1.0`, energy `1.0`, tempo `1.0`, and other optional numeric fields `0.5`. Missing FMA features contribute zero instead of being invented. A preference value of `unknown` is treated as unspecified and earns no match points.
 
-## 8. Reliability evidence
+## 9. Reliability evidence
 
 The system rejects malformed profiles, out-of-range values, duplicate IDs, foreign tracks, duplicate recommendations, score drift, false explanations, and invalid ordering. It also removes obvious `Interview`, `Podcast`, `Spoken Word`, `Radio Show`, `Speech`, and `Commentary` records during FMA preparation.
 
 Examples are documented in [docs/project4_evidence.md](docs/project4_evidence.md), while the original guardrail examples remain in [docs/examples.md](docs/examples.md).
 
-## 9. Audio status
+## 10. Audio status
 
 The UI includes an audio player dock and is ready for an `audio_url` field. The normalized catalog currently contains metadata and features, not verified audio stream URLs. The player therefore reports that no preview URL is available instead of fabricating a link. Adding a licensed, verified preview source is the next media-data step.
 
-## 10. Limitations and future work
+## 11. Limitations and future work
 
 - FMA is a research/Creative Commons catalog, not a Spotify US-UK catalog.
 - TF-IDF matches vocabulary; it does not understand every semantic synonym.
@@ -142,6 +190,6 @@ The UI includes an audio player dock and is ready for an `audio_url` field. The 
 - The current evaluation measures rule consistency and genre hit rate, not listener satisfaction.
 - Future work: add verified audio URLs, collect listener feedback, learn weights from ratings, and compare TF-IDF with embedding retrieval.
 
-## 11. AI collaboration reflection
+## 12. AI collaboration reflection
 
 AI helped inspect the starter project, design the FMA normalization, write tests, debug Windows pytest permissions, design the UI, and integrate structured Gemini parsing. I accepted the shared-scoring design because it keeps scores and explanations consistent. I revised the suggestion to delete the original `src.main`: it remains useful as a baseline and is still covered by tests. I rejected treating the deterministic guardrail as an autonomous agent or fine-tuned model. More detail is in [ai_interactions.md](ai_interactions.md) and [model_card.md](model_card.md).

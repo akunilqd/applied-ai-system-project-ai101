@@ -8,7 +8,7 @@ This file maps the implemented project to the required rubric. It is evidence, n
 | --- | --- |
 | Base project and original scope | README Section 1; `src/main.py`; original 24-track `data/songs.csv` baseline |
 | Substantial AI feature | `src/query_parser.py` structured Gemini parser; `src/rag.py` TF-IDF/cosine retrieval; `scripts/prepare_fma.py` FMA catalog; live web path in `web/server.py` |
-| Architecture diagram | `docs/architecture.mmd` shows browser input, Gemini, validation, TF-IDF, ranking, guardrail, and output |
+| Architecture diagram | `diagrams/architecture.mmd` shows browser input, Gemini, validation, TF-IDF, ranking, guardrail, and output |
 | End-to-end demonstration | `web/server.py` + `web/index.html`; README setup/run commands; `test.py` live Gemini smoke test |
 | Reliability | `src/recommender.py` validation; `src/reliability.py` output guardrail; FMA blocked-content filter; `scripts/evaluate_fma.py` |
 | Documentation | `README.md`, `docs/system_design.md`, `model_card.md`, and this evidence file |
